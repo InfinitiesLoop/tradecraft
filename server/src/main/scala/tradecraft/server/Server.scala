@@ -1,13 +1,37 @@
 package tradecraft.server
 
+import tradecraft.core.LocalPlayersController
+
 class Server {
   private var running = true
 
   private def UpdatesPerSecond = 20L
   private def FramesPerSecond = 20L
-  private def RenderTime = true
+  private def RenderTime = false
+
+  val playersController = new LocalPlayersController()
+
+  def startServices(): Unit = {
+    new Thread(() => { playersController.run() }).start()
+  }
+
+  def stopServices(): Unit = {
+    playersController.close()
+  }
+
+  @scala.annotation.tailrec
+  private def processInput(): Unit = {
+    playersController.pollCommand match {
+      case Some(command) =>
+        System.out.println(s"Got Command => ${command.line}")
+        processInput()
+      case _ =>
+    }
+  }
 
   def run(): Unit = {
+    startServices()
+
     var initialTime = System.nanoTime
     val timeU: Double = 1000000000D / UpdatesPerSecond
     val timeF: Double = 1000000000D / FramesPerSecond
@@ -23,7 +47,7 @@ class Server {
       deltaF = deltaF + ((currentTime - initialTime) / timeF)
       initialTime = currentTime
       if (deltaU >= 1) {
-        //getInput()
+        processInput()
         //update()
         ticks = ticks + 1
         deltaU = deltaU - 1
