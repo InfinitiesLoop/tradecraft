@@ -10,20 +10,31 @@ class Server {
   private def RenderTime = false
 
   val playersController = new LocalPlayersController()
+  var serviceThreads: Option[List[Thread]] = None
 
   def startServices(): Unit = {
-    new Thread(() => { playersController.run() }).start()
+    serviceThreads = Some(List(
+      new Thread(() => { playersController.run() })
+    ))
+
+    serviceThreads.get.foreach(t => t.start())
   }
 
   def stopServices(): Unit = {
+    // stop services...
     playersController.close()
+
+    // wait for services to stop...
+    serviceThreads.get.foreach(t => t.join())
+
+    // other stuff...
   }
 
   @scala.annotation.tailrec
   private def processInput(): Unit = {
     playersController.pollCommand match {
       case Some(command) =>
-        System.out.println(s"Got Command => ${command.line}")
+        System.out.println(s"[SERVER] Got Command => ${command.line}")
         processInput()
       case _ =>
     }
@@ -64,6 +75,8 @@ class Server {
         timer = timer + 1000
       }
     }
+
+    stopServices()
   }
 
   def stop(): Unit = {

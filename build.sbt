@@ -27,5 +27,14 @@ lazy val mod_sectormap = (project in file("mod.sectormap")).
   )
 
 lazy val root = (project in file("."))
-  .aggregate(core, server, mod_sectormap)
   .settings(commonSettings: _*)
+  .settings(
+    name := "tradecraft",
+    moduleName := "tradecraft"
+  )
+  .dependsOn(core, server)
+  .aggregate(core, server, mod_sectormap)
+
+// lol wut
+mainClass in (Compile,run) := Some("tradecraft.Main")
+
