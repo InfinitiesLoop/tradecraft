@@ -35,21 +35,6 @@ class ObjectStore {
     }
   }
 
-  def objectNameOf(obj: GameObject): Option[String] = {
-    obj.getClass.getAnnotationsByType(classOf[GameObjectName]) match {
-      case a if a.length == 1 =>
-        Option(a(0).name)
-      case _ =>
-        None
-    }
-  }
-
-  def objectNameFromClass[T](clazz: Class[T]): Option[String] = {
-    clazz.getAnnotationsByType(classOf[GameObjectName]) match {
-      case a if a.length == 1 =>
-        Option(a(0).name)
-      case _ =>
-        None
-    }
-  }
+  def objectNameOf(obj: GameObject): Option[String] = Some(obj.getClass.getName)
+  def objectNameFromClass[T](clazz: Class[T]): Option[String] = Some(clazz.getName)
 }
