@@ -1,37 +1,33 @@
 package tradecraft.core.model
 
 import scala.collection.mutable
+import scala.reflect.ClassTag
 
 class ObjectStore {
   private def objectMap = mutable.Map[String, mutable.Map[Long, GameObject]]()
 
-  def getObject[T <: GameObject](objectId: Long): Option[T] = {
-    objectNameOf(classOf[T]) match {
-      case Some(name) =>
-        objectMap.synchronized {
-          objectMap.get(name) match {
-            case Some(m) =>
-              m.get(objectId).orElse[T](None)
-            case _ =>
-              None
-          }
-        }
-      case _ =>
-        None
+  def getObject[T <: GameObject](objectId: GameObjectId): Option[T] = {
+    objectMap.synchronized {
+      objectMap.get(objectId.objectType) match {
+        case Some(m) =>
+          m.get(objectId.id).map(o => o.asInstanceOf[T])
+        case _ =>
+          None
+      }
     }
   }
 
-  def insertObject[T <: GameObject](obj: T): Option[Long] = {
-    objectNameOf(classOf[T]) match {
+  def insertObject[T <: GameObject](obj: T)(implicit classTag: ClassTag[T]): Option[GameObjectId] = {
+    objectNameFromClass(classTag.runtimeClass) match {
       case Some(name) =>
         objectMap.synchronized {
           objectMap.get(name) match {
             case Some(m) =>
               m(m.size + 1) = obj
-              Some(m.size)
+              Some(GameObjectId(name, m.size))
             case _ =>
               objectMap(name) = mutable.Map[Long, GameObject]({ 1L -> obj.asInstanceOf[GameObject] })
-              Some(1)
+              Some(GameObjectId(name, 1))
           }
         }
       case _ =>
@@ -48,7 +44,7 @@ class ObjectStore {
     }
   }
 
-  def objectNameOf[T <: GameObject](clazz: Class[T]): Option[String] = {
+  def objectNameFromClass[T](clazz: Class[T]): Option[String] = {
     clazz.getAnnotationsByType(classOf[GameObjectName]) match {
       case a if a.length == 1 =>
         Option(a(0).name)
