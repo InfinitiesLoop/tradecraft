@@ -64,7 +64,7 @@ class Server {
         deltaU = deltaU - 1
       }
       if (deltaF >= 1) {
-        //render()
+        //sendClientUpdates()
         frames = frames + 1
         deltaF = deltaF - 1
       }
