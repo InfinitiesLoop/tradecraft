@@ -1,6 +1,6 @@
 package tradecraft.server
 
-import tradecraft.core.LocalPlayersController
+import tradecraft.core.{PlayersController, Service}
 
 class Server {
   private var running = true
@@ -8,21 +8,30 @@ class Server {
   private def UpdatesPerSecond = 20L
   private def FramesPerSecond = 20L
   private def RenderTime = false
+  var services: List[Service] = List()
 
-  val playersController = new LocalPlayersController()
+  var playersController: Option[PlayersController] = None
   var serviceThreads: Option[List[Thread]] = None
 
+  def addService(service: Service): Unit = {
+    services = services :+ service
+  }
+
   def startServices(): Unit = {
-    serviceThreads = Some(List(
-      new Thread(() => { playersController.run() })
-    ))
+    serviceThreads = Some(services.map(s => {
+      new Thread(() => s.run())
+    }))
 
     serviceThreads.get.foreach(t => t.start())
+
+    playersController = services
+      .find(p => p.isInstanceOf[PlayersController])
+      .map(s => s.asInstanceOf[PlayersController])
   }
 
   def stopServices(): Unit = {
     // stop services...
-    playersController.close()
+    services.foreach(s => s.close())
 
     // wait for services to stop...
     serviceThreads.get.foreach(t => t.join())
@@ -32,7 +41,7 @@ class Server {
 
   @scala.annotation.tailrec
   private def processInput(): Unit = {
-    playersController.pollCommand match {
+    playersController.get.pollCommand match {
       case Some(command) =>
         System.out.println(s"[SERVER] Got Command => ${command.line}")
         processInput()

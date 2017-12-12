@@ -1,8 +1,6 @@
 package tradecraft.mod.sectormap
 
-import tradecraft.core.model.{GameObject, GameObjectName}
+import tradecraft.core.model.{GameObject}
 
-// todo: just use the class name?
-@GameObjectName("sector")
 class Sector(val number: Long) extends GameObject {
 }
