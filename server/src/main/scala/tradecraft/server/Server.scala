@@ -1,5 +1,6 @@
 package tradecraft.server
 
+import tradecraft.core.model.{GameObjectId, ObjectStore, Player}
 import tradecraft.core.{PlayersController, Service}
 
 class Server {
@@ -11,9 +12,11 @@ class Server {
   var services: List[Service] = List()
 
   var playersController: Option[PlayersController] = None
+  var objectStore = new ObjectStore() // todo: really this would be loaded from a persistent store
   var serviceThreads: Option[List[Thread]] = None
 
   def addService(service: Service): Unit = {
+    // todo: consider a ServerFactory instead of this add/start pattern.
     services = services :+ service
   }
 
@@ -43,9 +46,21 @@ class Server {
   private def processInput(): Unit = {
     playersController.get.pollCommand match {
       case Some(command) =>
-        System.out.println(s"[SERVER] Got Command => [${command.userName}][${command.line}]")
+        val player = getOrSpawnPlayer(command.userId)
+        System.out.println(s"[SERVER] Got Command => [${command.userId}][${command.line}]")
         processInput()
       case _ =>
+    }
+  }
+
+  private def getOrSpawnPlayer(userId: Long): Player = {
+    val maybePlayer = objectStore.getObject(GameObjectId("player", userId))
+    if (maybePlayer.isEmpty) {
+      val player = new Player(userId)
+      objectStore.insertObject(GameObjectId("player", userId), player)
+      player
+    } else {
+      maybePlayer.get
     }
   }
 

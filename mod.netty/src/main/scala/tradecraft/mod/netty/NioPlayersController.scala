@@ -41,8 +41,8 @@ class NioPlayersController extends PlayersController {
     }
   }
 
-  def playerAuthenticated(userName: String): Unit = {
-    queue.add(UserCommand(userName, UserCommand.Refresh))
+  def playerAuthenticated(userId: Long, userName: String): Unit = {
+    queue.add(UserCommand(userId, UserCommand.Refresh))
   }
 
   override def close(): Unit = {

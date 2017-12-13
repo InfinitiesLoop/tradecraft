@@ -17,24 +17,23 @@ class ObjectStore {
     }
   }
 
-  def insertObject[T <: GameObject](obj: T)(implicit classTag: ClassTag[T]): Option[GameObjectId] = {
-    objectNameFromClass(classTag.runtimeClass) match {
-      case Some(name) =>
-        objectMap.synchronized {
-          objectMap.get(name) match {
-            case Some(m) =>
-              m(m.size + 1) = obj
-              Some(GameObjectId(name, m.size))
-            case _ =>
-              objectMap(name) = mutable.Map[Long, GameObject]({ 1L -> obj.asInstanceOf[GameObject] })
-              Some(GameObjectId(name, 1))
-          }
+  def insertObject[T <: GameObject](objectId: GameObjectId, obj: T): Option[GameObjectId] = {
+    objectMap.synchronized {
+      val m = objectMap.getOrElseUpdate(objectId.objectType, mutable.Map[Long, GameObject]())
+
+      if (objectId.id > 0) {
+        if (m.contains(objectId.id)) {
+          throw new IllegalStateException(s"Object ${objectId.objectType}#${objectId.id} already exists.")
         }
-      case _ =>
-        None
+        m(objectId.id) = obj
+        Some(GameObjectId(objectId.objectType, objectId.id))
+      } else {
+        m(m.size + 1) = obj
+        Some(GameObjectId(objectId.objectType, m.size))
+      }
     }
   }
 
-  def objectNameOf(obj: GameObject): Option[String] = Some(obj.getClass.getName)
-  def objectNameFromClass[T](clazz: Class[T]): Option[String] = Some(clazz.getName)
+  //def objectNameOf(obj: GameObject): Option[String] = Some(obj.getClass.getName)
+  //def objectNameFromClass[T](clazz: Class[T]): Option[String] = Some(clazz.getName)
 }

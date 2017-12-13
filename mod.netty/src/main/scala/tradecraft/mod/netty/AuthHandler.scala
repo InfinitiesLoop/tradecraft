@@ -4,13 +4,13 @@ import io.netty.channel.{ChannelHandlerContext, ChannelInboundHandlerAdapter}
 import io.netty.util.{AttributeKey, ReferenceCountUtil}
 
 object AuthHandler {
-  val AuthAttributeKey: AttributeKey[String] = AttributeKey.valueOf("authhandler.username")
+  val AuthAttributeKey: AttributeKey[Long] = AttributeKey.valueOf("authhandler.userid")
 }
 
 class AuthHandler(val playersController: NioPlayersController) extends ChannelInboundHandlerAdapter {
 
   override def channelRegistered(ctx: ChannelHandlerContext): Unit = {
-    ctx.channel().attr(AuthHandler.AuthAttributeKey).set("")
+    ctx.channel().attr(AuthHandler.AuthAttributeKey).set(0)
     super.channelRegistered(ctx)
   }
 
@@ -20,8 +20,8 @@ class AuthHandler(val playersController: NioPlayersController) extends ChannelIn
 
   override def channelRead(ctx: ChannelHandlerContext, msg: Any): Unit = {
     ReferenceCountUtil.release(msg)
-    val userName = ctx.channel().attr(AuthHandler.AuthAttributeKey).get()
-    if (userName.length > 0) {
+    val userId = ctx.channel().attr(AuthHandler.AuthAttributeKey).get()
+    if (userId > 0) {
       super.channelRead(ctx, msg)
       return
     }
@@ -34,8 +34,8 @@ class AuthHandler(val playersController: NioPlayersController) extends ChannelIn
         // TODO: actually do it
         // TODO: log4j
         System.out.println(s"Authenticated user ${name}.")
-        ctx.channel().attr(AuthHandler.AuthAttributeKey).set(name)
-        playersController.playerAuthenticated(name)
+        ctx.channel().attr(AuthHandler.AuthAttributeKey).set(88)
+        playersController.playerAuthenticated(88, name)
       case _ =>
         // not the right message type of an unauthenticated channel
     }
