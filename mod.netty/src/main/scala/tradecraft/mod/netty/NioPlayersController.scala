@@ -1,11 +1,12 @@
 package tradecraft.mod.netty
 
-import tradecraft.core.PlayersController
+import tradecraft.core.{PlayersController, UserCommand}
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.{ChannelFuture, ChannelInitializer, ChannelOption}
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
+import io.netty.handler.codec.json.JsonObjectDecoder
 
 class NioPlayersController extends PlayersController {
   var channelFuture: Option[ChannelFuture] = None
@@ -20,7 +21,11 @@ class NioPlayersController extends PlayersController {
         .channel(classOf[NioServerSocketChannel])
         .childHandler(new ChannelInitializer[SocketChannel] {
           override def initChannel(ch: SocketChannel): Unit = {
-            ch.pipeline().addLast(new TradeCraftServerHandler(self))
+            ch.pipeline()
+              .addLast(new JsonObjectDecoder())
+              .addLast(new UserMessageDecoder())
+              .addLast(new AuthHandler(self))
+              .addLast(new TradeCraftServerHandler(self))
           }
         })
         .option(ChannelOption.SO_BACKLOG, int2Integer(128))
@@ -36,7 +41,15 @@ class NioPlayersController extends PlayersController {
     }
   }
 
+  def playerAuthenticated(userName: String): Unit = {
+    queue.add(UserCommand(userName, UserCommand.Refresh))
+  }
+
   override def close(): Unit = {
     super.close()
+  }
+
+  def enqueue(userCommand: UserCommand): Unit = {
+    queue.add(userCommand)
   }
 }

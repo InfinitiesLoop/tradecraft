@@ -43,7 +43,7 @@ class Server {
   private def processInput(): Unit = {
     playersController.get.pollCommand match {
       case Some(command) =>
-        System.out.println(s"[SERVER] Got Command => ${command.line}")
+        System.out.println(s"[SERVER] Got Command => [${command.userName}][${command.line}]")
         processInput()
       case _ =>
     }

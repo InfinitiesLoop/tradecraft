@@ -32,7 +32,9 @@ lazy val mod_netty = (project in file("mod.netty")).
     name := "tradecraft-mod-netty",
     moduleName := "mod.netty",
     libraryDependencies := Seq(
-      "io.netty" % "netty-all" % "4.0.4.Final"
+      "io.netty" % "netty-all" % "4.1.18.Final",
+      "io.netty" % "netty-codec" % "4.1.18.Final",
+      "org.json4s" %% "json4s-native" % "3.5.3"
     )
   ).dependsOn(core)
 

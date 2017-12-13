@@ -1,10 +1,11 @@
 package tradecraft.core
 
 object UserCommand {
-  def apply(line: String): UserCommand = {
-    new UserCommand(line)
+  def apply(userName: String, command: String): UserCommand = {
+    new UserCommand(userName, command)
   }
+  def Refresh = ""
 }
 
-class UserCommand(val line: String) {
+class UserCommand(val userName: String, val line: String) {
 }
