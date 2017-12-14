@@ -9,7 +9,9 @@ lazy val core = (project in file("core")).
   settings(commonSettings: _*).
   settings(
     name := "tradecraft-core",
-    moduleName := "core"
+    moduleName := "core",
+    libraryDependencies := Seq(
+    )
   )
 
 lazy val server = (project in file("server")).
