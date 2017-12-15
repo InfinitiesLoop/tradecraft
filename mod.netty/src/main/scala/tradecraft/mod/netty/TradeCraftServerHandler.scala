@@ -12,8 +12,8 @@ class TradeCraftServerHandler(playersController: NioPlayersController) extends C
 
   override def channelRead(ctx: ChannelHandlerContext, msg: Any): Unit = {
     val um = msg.asInstanceOf[UserMessage]
-    val userName = ctx.channel().attr(AuthHandler.AuthAttributeKey).get()
-    playersController.enqueue(UserCommand(userName, um.command.getOrElse(UserCommand.Refresh)))
+    val userId = ctx.channel().attr(AuthHandler.AuthAttributeKey).get()
+    playersController.enqueue(UserCommand(userId, um.command.getOrElse(UserCommand.Refresh)))
   }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
