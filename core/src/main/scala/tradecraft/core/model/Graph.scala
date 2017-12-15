@@ -13,7 +13,11 @@ class Graph[TNode] {
   private object InnerNode {
     def apply(value: TNode) = new InnerNode(value)
   }
-  private class InnerNode(val value: TNode) {
+  // Note that InnerNode's value is is mutable. Evil, right?
+  // It makes life easy -- the objects in the graph are immutable, so we need to be able to
+  // replace them with new copies of the same object with mutations are needed, without losing
+  // the existing edges on that node. Simplest way is to just mutate the node value.
+  private class InnerNode(var value: TNode) {
     def outs: mutable.HashSet[Edge] = new mutable.HashSet[Edge]()
     def ins: mutable.HashSet[Edge] = new mutable.HashSet[Edge]()
 
@@ -65,14 +69,21 @@ class Graph[TNode] {
     * Add a node to the graph, if it isn't already in the graph.
     * @param value
     */
-  def addNode(value: TNode): Unit = nodes.getOrElseUpdate(value, InnerNode(value))
+  def addNode(value: TNode): Unit = {
+    val existing = nodes.get(value)
+    if (existing.isDefined) {
+      existing.get.value = value
+    } else {
+      nodes(value) = InnerNode(value)
+    }
+  }
 
   /**
     * Test whether a node is already in the graph.
     * @param value
     * @return True if the graph contains the node.
     */
-  def hasNode(value: TNode): Boolean = nodes.get(value).isDefined
+  def hasNode(value: TNode): Boolean = nodes.contains(value)
 
   /**
     * Connect node 'from' to node 'to' with the given label, optionally doing the reverse as well.
