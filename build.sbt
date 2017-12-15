@@ -2,7 +2,9 @@
 lazy val commonSettings = Seq(
   organization := "com.infinity88",
   version := "1.0.0-SNAPSHOT",
-  scalaVersion := "2.12.4"
+  scalaVersion := "2.12.4",
+  libraryDependencies := Seq(
+  )
 )
 
 lazy val core = (project in file("core")).
@@ -11,6 +13,9 @@ lazy val core = (project in file("core")).
     name := "tradecraft-core",
     moduleName := "core",
     libraryDependencies := Seq(
+      "org.scala-lang"    %   "scala-compiler"      % scalaVersion.value,
+      "org.scala-lang"    %   "scala-library"       % scalaVersion.value,
+      "org.scala-lang"    %   "scala-reflect"       % scalaVersion.value
     )
   )
 
