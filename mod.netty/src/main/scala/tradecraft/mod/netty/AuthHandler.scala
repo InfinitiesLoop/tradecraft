@@ -19,25 +19,30 @@ class AuthHandler(val playersController: NioPlayersController) extends ChannelIn
   }
 
   override def channelRead(ctx: ChannelHandlerContext, msg: Any): Unit = {
-    ReferenceCountUtil.release(msg)
     val userId = ctx.channel().attr(AuthHandler.AuthAttributeKey).get()
     if (userId > 0) {
+      // this channel is already authenticated, so this handler can just ignore everything.
       super.channelRead(ctx, msg)
       return
     }
 
-    // user not authenticated, so we must get an Auth user command,
-    // ignoring anything else.
-    msg.asInstanceOf[UserMessage] match {
-      case UserMessage(None, Some(AuthMessage(name, pw))) =>
-        // try to auth
-        // TODO: actually do it
-        // TODO: log4j
-        System.out.println(s"Authenticated user ${name}.")
-        ctx.channel().attr(AuthHandler.AuthAttributeKey).set(88)
-        playersController.playerAuthenticated(88, name)
-      case _ =>
-        // not the right message type of an unauthenticated channel
+    try {
+      // user not authenticated, so we must get an Auth user command,
+      // ignoring anything else.
+      msg.asInstanceOf[UserMessage] match {
+        case UserMessage(None, Some(AuthMessage(name, pw))) =>
+          // try to auth
+          // TODO: actually do it
+          // TODO: log4j
+          System.out.println(s"Authenticated user ${name}.")
+          ctx.channel().attr(AuthHandler.AuthAttributeKey).set(88)
+          playersController.playerAuthenticated(88, name)
+        case _ =>
+          // not the right message type of an unauthenticated channel,
+          // ignore it basically.
+      }
+    } finally {
+      ReferenceCountUtil.release(msg)
     }
   }
 
