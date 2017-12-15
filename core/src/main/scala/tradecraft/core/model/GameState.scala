@@ -4,9 +4,18 @@ import java.util.concurrent.atomic.AtomicLong
 
 import scala.collection.mutable
 
-abstract class GameObject(val kind: String, val id: Option[Long] = None) {
+class GameObject(val kind: String,
+                          val id: Option[Long] = None,
+                          _data: Option[Map[String, Any]] = None) {
+
+  val data = new mutable.HashMap[String, Any]()
+  _data.foreach(d => d.foreach(e => data(e._1) = e._2))
+
   def copy(): GameObject = copyWithId(id)
-  def copyWithId(id: Option[Long]): GameObject
+  def copyWithId(id: Option[Long]): GameObject = new GameObject(kind, id, Some(data.toMap))
+
+  def apply[T](name: String): Option[T] = data.get(name).map(v => v.asInstanceOf[T])
+  def update(name: String, value: Any): Unit = data(name) = value
 }
 
 class GameState {
@@ -36,6 +45,8 @@ class GameState {
   // or that is then mutated, and then call updateObject to store the new instance in place of the old one. This preserves
   // graph relationships the object has, doesn't change the ID, and is a more thread safe way of doing the mutation.
   def updateObject(gameObject: GameObject): Unit = gameObjects(gameObject.id.get) = gameObject
+
+  def getObject(id: Long): Option[GameObject] = gameObjects.get(id)
 
   def connect(from: GameObject, to: GameObject, name: String, bidirectional: Boolean = false): Boolean
     = graph.connect(from.id.get, to.id.get, name, bidirectional)
