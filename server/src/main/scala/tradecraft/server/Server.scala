@@ -1,6 +1,5 @@
 package tradecraft.server
 
-import tradecraft.core.model.{Player}
 import tradecraft.core.{PlayersController, Service}
 
 class Server {
@@ -46,21 +45,10 @@ class Server {
 
     playersController.get.pollCommand match {
       case Some(command) =>
-        val player = getOrSpawnPlayer(command.userId)
-        System.out.println(s"[SERVER] Got Command => [${command.userId}][${command.line}]")
+        System.out.println(s"[SERVER] Got Command => [${command.userId}][${command.command}]")
         processInput()
       case _ =>
     }
-  }
-
-  private def getOrSpawnPlayer(userId: Long): Player = {
-    null
-    /*
-    objectStore.getObject(GameObjectId("player", userId)).getOrElse(() => {
-      val player = new Player(userId)
-      objectStore.insertObject(GameObjectId("player", userId), player)
-      player
-    })*/
   }
 
   def run(): Unit = {

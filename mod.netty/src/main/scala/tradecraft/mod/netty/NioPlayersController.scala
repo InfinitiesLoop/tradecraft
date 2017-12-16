@@ -2,16 +2,25 @@ package tradecraft.mod.netty
 
 import tradecraft.core.{PlayersController, UserCommand}
 import io.netty.bootstrap.ServerBootstrap
-import io.netty.channel.{ChannelFuture, ChannelInitializer, ChannelOption}
+import io.netty.channel.{ChannelFuture, ChannelHandlerContext, ChannelInitializer, ChannelOption}
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.json.JsonObjectDecoder
+import io.netty.util.AttributeKey
+// TODO: PlayersController should probably be called the UsersController
+
+object NioPlayersController {
+  val connectedUserKey: AttributeKey[NioConnectedUser] = AttributeKey.valueOf("nioplayerscontroller.connecteduser")
+}
 
 class NioPlayersController extends PlayersController {
   var channelFuture: Option[ChannelFuture] = None
   var masterGroup = new NioEventLoopGroup
   var workerGroup = new NioEventLoopGroup
+
+  var connectedUsers: Set[NioConnectedUser] = Set()
+
 
   override def run(): Unit = {
     val self = this
@@ -20,10 +29,21 @@ class NioPlayersController extends PlayersController {
       b.group(masterGroup, workerGroup)
         .channel(classOf[NioServerSocketChannel])
         .childHandler(new ChannelInitializer[SocketChannel] {
+          override def channelUnregistered(ctx: ChannelHandlerContext): Unit = {
+            // de-associate the channel with the connected user
+            // probably don't actually have to do this but should make the user able to be cleaned up sooner
+            connectedUsers -= ctx.channel().attr(NioPlayersController.connectedUserKey).get()
+            ctx.channel().attr(NioPlayersController.connectedUserKey).set(null)
+          }
           override def initChannel(ch: SocketChannel): Unit = {
+            // This channel is associated with a user
+            val user = new NioConnectedUser(ch)
+            connectedUsers += user
+            ch.attr(NioPlayersController.connectedUserKey).set(user)
+
             ch.pipeline()
               .addLast(new JsonObjectDecoder())
-              .addLast(new UserMessageDecoder())
+              .addLast(new RequestDecoder())
               .addLast(new AuthHandler(self))
               .addLast(new TradeCraftServerHandler(self))
           }
@@ -41,8 +61,8 @@ class NioPlayersController extends PlayersController {
     }
   }
 
-  def playerAuthenticated(userId: Long, userName: String): Unit = {
-    queue.add(UserCommand(userId, UserCommand.Refresh))
+  def playerAuthenticated(userId: Long, connectedUser: NioConnectedUser, userName: String): Unit = {
+    queue.add(UserCommand(userId, connectedUser, UserCommand.Refresh))
   }
 
   override def close(): Unit = {

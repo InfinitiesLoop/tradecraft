@@ -5,7 +5,8 @@ import scala.io.StdIn
 class LocalPlayersController extends PlayersController {
   override def run(): Unit = {
     while (running) {
-      queue.add(UserCommand(0, readCommand()))
+      // todo: make a consoler user implementation
+      queue.add(UserCommand(0, null, readCommand()))
     }
   }
 

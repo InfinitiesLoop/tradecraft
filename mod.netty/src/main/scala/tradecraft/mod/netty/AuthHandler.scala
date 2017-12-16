@@ -2,6 +2,7 @@ package tradecraft.mod.netty
 
 import io.netty.channel.{ChannelHandlerContext, ChannelInboundHandlerAdapter}
 import io.netty.util.{AttributeKey, ReferenceCountUtil}
+import tradecraft.core.{AuthRequest, Request}
 
 object AuthHandler {
   val AuthAttributeKey: AttributeKey[Long] = AttributeKey.valueOf("authhandler.userid")
@@ -26,17 +27,18 @@ class AuthHandler(val playersController: NioPlayersController) extends ChannelIn
       return
     }
 
+    val connectedUser = ctx.channel().attr(NioPlayersController.connectedUserKey).get()
     try {
       // user not authenticated, so we must get an Auth user command,
       // ignoring anything else.
-      msg.asInstanceOf[UserMessage] match {
-        case UserMessage(None, Some(AuthMessage(name, pw))) =>
+      msg.asInstanceOf[Request] match {
+        case Request(None, Some(AuthRequest(name, pw))) =>
           // try to auth
           // TODO: actually do it
           // TODO: log4j
           System.out.println(s"Authenticated user ${name}.")
           ctx.channel().attr(AuthHandler.AuthAttributeKey).set(88)
-          playersController.playerAuthenticated(88, name)
+          playersController.playerAuthenticated(88, connectedUser, name)
         case _ =>
           // not the right message type of an unauthenticated channel,
           // ignore it basically.
