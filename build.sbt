@@ -1,3 +1,4 @@
+val json4sVersion = "3.5.3"
 
 lazy val commonSettings = Seq(
   organization := "com.infinity88",
@@ -15,7 +16,8 @@ lazy val core = (project in file("core")).
     libraryDependencies := Seq(
       "org.scala-lang"    %   "scala-compiler"      % scalaVersion.value,
       "org.scala-lang"    %   "scala-library"       % scalaVersion.value,
-      "org.scala-lang"    %   "scala-reflect"       % scalaVersion.value
+      "org.scala-lang"    %   "scala-reflect"       % scalaVersion.value,
+      "org.json4s" %% "json4s-native" % json4sVersion
     )
   )
 
@@ -41,7 +43,7 @@ lazy val mod_netty = (project in file("mod.netty")).
     libraryDependencies := Seq(
       "io.netty" % "netty-all" % "4.1.18.Final",
       "io.netty" % "netty-codec" % "4.1.18.Final",
-      "org.json4s" %% "json4s-native" % "3.5.3"
+      "org.json4s" %% "json4s-native" % json4sVersion
     )
   ).dependsOn(core)
 

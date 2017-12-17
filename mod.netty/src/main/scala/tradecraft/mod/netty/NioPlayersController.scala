@@ -46,6 +46,7 @@ class NioPlayersController extends PlayersController {
               .addLast(new RequestDecoder())
               .addLast(new AuthHandler(self))
               .addLast(new TradeCraftServerHandler(self))
+              .addLast(new ResponseEncoder())
           }
         })
         .option(ChannelOption.SO_BACKLOG, int2Integer(128))

@@ -30,16 +30,18 @@ class CommandRouter(gameState: GameState) {
     val actionResult = handlers.get(attachedToKind).map(handler => handler.action(actionContext))
 
     // do the action
-    // todo: we need CONTEXT here so the action can write to the player.
     actionResult.foreach(_.execute(actionContext))
   }
 }
 
 class RootController extends Controller {
   override def action(actionContext: ActionContext): ActionResult = {
-    ViewActionResult("spawn_player")
+    //ViewActionResult("spawn_player")
+    StringActionResult("<span player>")
   }
 }
+
+// todo: why can't I hold all these classes??
 
 case class ActionContext(userCommand: UserCommand, attachedObject: Option[GameObject])
 
@@ -51,13 +53,21 @@ trait ActionResult {
   def execute(actionContext: ActionContext): Unit
 }
 
+object StringActionResult {
+  def apply(str: String): StringActionResult = new StringActionResult(str)
+}
+class StringActionResult(str: String) extends ActionResult {
+  def execute(actionContext: ActionContext): Unit = {
+    actionContext.userCommand.connectedUser.sendResponse(Response.render(str))
+  }
+}
+
 object ViewActionResult {
-  def apply(viewName: String): ActionResult = new ViewActionResult(viewName)
+  def apply(viewName: String): ViewActionResult = new ViewActionResult(viewName)
 }
 class ViewActionResult(viewName: String) extends ActionResult {
   def execute(actionContext: ActionContext): Unit = {
-    System.out.println("would have have rendered view: " + viewName)
-    actionContext.userCommand.connectedUser.sendResponse(Response.render("hello world! view = " + viewName))
-    // todo: render the view
+    // todo: integrate a view engine! probably add something for a view model to get passed in here too.
+    actionContext.userCommand.connectedUser.sendResponse(Response.render("view = " + viewName))
   }
 }
