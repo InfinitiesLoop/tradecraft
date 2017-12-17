@@ -90,7 +90,7 @@ there.
 It's so rough right now. But run the server. Then telnet to the socket:
 
 ```
-telenet localhost 8088
+telnet localhost 8088
 ```
 
 You send JSON commands and receive JSON responses. First thing you need to
@@ -109,3 +109,4 @@ After that, you can send JSON commands that look like this:
 
 That command basically represents what would have happened if the client
 typed 'foo' and hit enter. The server gets to decide what that means.
+Which at the moment is nothing...
