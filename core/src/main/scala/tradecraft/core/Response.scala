@@ -1,9 +1,10 @@
 package tradecraft.core
 
 object Response {
-  case class RenderResponse(lines: List[String])
 
-  def render(line: String): RenderResponse = RenderResponse(List(line))
-  def render(lines: List[String]): RenderResponse = RenderResponse(lines)
+  def render(line: String): RenderResponse = new RenderResponse(List(line))
+  def render(lines: List[String]): RenderResponse = new RenderResponse(lines)
 }
+
 class Response {}
+class RenderResponse(lines: List[String]) extends Response

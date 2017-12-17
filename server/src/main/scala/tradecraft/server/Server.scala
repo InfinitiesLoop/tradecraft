@@ -1,6 +1,7 @@
 package tradecraft.server
 
-import tradecraft.core.{PlayersController, Service}
+import tradecraft.core.model.GameState
+import tradecraft.core.{CommandRouter, PlayersController, RootController, Service}
 
 class Server {
   private var running = true
@@ -12,10 +13,17 @@ class Server {
 
   var playersController: Option[PlayersController] = None
   var serviceThreads: Option[List[Thread]] = None
+  val gameState: GameState = new GameState()
+  val commandRouter: CommandRouter = new CommandRouter(gameState)
 
   def addService(service: Service): Unit = {
     // todo: consider a ServerFactory instead of this add/start pattern.
     services = services :+ service
+  }
+
+  def registerRoutes(): Unit = {
+    // todo: some day we'd do this by calling into all the loaded mods
+    commandRouter.addRoute("root", new RootController())
   }
 
   def startServices(): Unit = {
@@ -45,7 +53,8 @@ class Server {
 
     playersController.get.pollCommand match {
       case Some(command) =>
-        System.out.println(s"[SERVER] Got Command => [${command.userId}][${command.command}]")
+        commandRouter.handleCommand(command)
+        //System.out.println(s"[SERVER] Got Command => [${command.userId}][${command.command}]")
         processInput()
       case _ =>
     }
@@ -53,6 +62,7 @@ class Server {
 
   def run(): Unit = {
     startServices()
+    registerRoutes()
 
     var initialTime = System.nanoTime
     val timeU: Double = 1000000000D / UpdatesPerSecond
