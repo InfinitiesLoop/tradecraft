@@ -17,7 +17,10 @@ lazy val core = (project in file("core")).
       "org.scala-lang"    %   "scala-compiler"      % scalaVersion.value,
       "org.scala-lang"    %   "scala-library"       % scalaVersion.value,
       "org.scala-lang"    %   "scala-reflect"       % scalaVersion.value,
-      "org.json4s" %% "json4s-native" % json4sVersion
+      // json for processing of requests and responses
+      "org.json4s" %% "json4s-native" % json4sVersion,
+      // templating engine for views
+      "org.freemarker" % "freemarker" % "2.3.27-incubating"
     )
   )
 

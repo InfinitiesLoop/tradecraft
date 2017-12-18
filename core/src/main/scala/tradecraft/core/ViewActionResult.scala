@@ -1,12 +1,12 @@
 package tradecraft.core
 
-class ViewActionResult(viewName: String) extends ActionResult {
+class ViewActionResult(viewName: String, viewData: AnyRef) extends ActionResult {
   def execute(actionContext: ActionContext): Unit = {
-    // todo: integrate a view engine! probably add something for a view model to get passed in here too.
-    actionContext.userCommand.connectedUser.sendResponse(Response.render("view = " + viewName))
+    val result = actionContext.templateEngine.render(viewName, viewData)
+    actionContext.userCommand.connectedUser.sendResponse(Response.render(result))
   }
 }
 
 object ViewActionResult {
-  def apply(viewName: String): ViewActionResult = new ViewActionResult(viewName)
+  def apply(viewName: String, viewData: AnyRef = null): ViewActionResult = new ViewActionResult(viewName, viewData: AnyRef)
 }

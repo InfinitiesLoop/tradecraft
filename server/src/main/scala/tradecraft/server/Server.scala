@@ -1,7 +1,9 @@
 package tradecraft.server
 
 import tradecraft.core.model.GameState
-import tradecraft.core.{CommandRouter, PlayersController, RootController, Service}
+import tradecraft.core._
+
+import scala.io.Source
 
 class Server {
   private var running = true
@@ -11,19 +13,34 @@ class Server {
   private def RenderTime = false
   var services: List[Service] = List()
 
+  // todo: this pattern is breaking down, we might want to define a ServerBuilder that can do all the init stuff
+  // and then new up a Server instance with an already configured set of services, etc.
   var playersController: Option[PlayersController] = None
   var serviceThreads: Option[List[Thread]] = None
   val gameState: GameState = new GameState()
   val commandRouter: CommandRouter = new CommandRouter(gameState)
+  var templateEngine: Option[TemplateEngine] = None
 
   def addService(service: Service): Unit = {
-    // todo: consider a ServerFactory instead of this add/start pattern.
     services = services :+ service
   }
 
   def registerRoutes(): Unit = {
     // todo: some day we'd do this by calling into all the loaded mods
     commandRouter.addRoute("root", new RootController())
+  }
+
+  def configureTemplateEngine(): Unit = {
+    // ultimately the list of templates should be gathered from all the loaded mods, perhaps by
+    // automatically scanning all their resources for a 'templates' directory and then using their
+    // mod name at the first part of the name given to it. But, we would also want a mod to be able
+    // to provide a replacement template for an existing one, so some API for providing them explicitly
+    // would be needed as well.
+    // Also, right now we just store all the templates as strings in memory, which is probably fine, but
+    // as many templates will probably go unused most the time, we should probably lazily load them.
+    templateEngine = Some(new FreeMarkerTemplateEngine(Map(
+      "core/spawn_player.ftl" -> Source.fromResource("templates/core/spawn_player.ftl").mkString
+    )))
   }
 
   def startServices(): Unit = {
@@ -53,7 +70,7 @@ class Server {
 
     playersController.get.pollCommand match {
       case Some(command) =>
-        commandRouter.handleCommand(command)
+        commandRouter.handleCommand(templateEngine.get, command)
         //System.out.println(s"[SERVER] Got Command => [${command.userId}][${command.command}]")
         processInput()
       case _ =>
@@ -63,6 +80,7 @@ class Server {
   def run(): Unit = {
     startServices()
     registerRoutes()
+    configureTemplateEngine()
 
     var initialTime = System.nanoTime
     val timeU: Double = 1000000000D / UpdatesPerSecond
