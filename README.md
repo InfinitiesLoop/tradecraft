@@ -87,32 +87,19 @@ there.
 
 ## Running Locally
 
-It's so rough right now. But run the server. Then telnet to the socket:
+Run the server. Then run the simple node client (source is in client/node).
 
 ```
-telnet localhost 8088
+./runclient
 ```
 
-You send JSON commands and receive JSON responses. First thing you need to
-do is authenticate with your account. Auth is faked out for now, so use
-any username and password you want.
+Client and server work by exchanging JSON commands. There's an MVC-like
+pattern in place on the server, so the client sends requests to 'routes'
+similar to urls. The server sents the client commands to tell it what to
+do with its terminal -- render some text, ask a question, or redirect it
+to another route. Note that the client may get render commands while still
+asking a question.
 
-The client and server communicate through commands that have a route specified.
-You'll notice on connecting that the client receives some Render commands,
-and then a 'prompt' command, asking for your username, with a route to post
-the answer to.
-
-Answer it like this:
-
-```
-{"type":"answer","route":"root/username","param":"username"}
-```
-
-Then you get a prompt for the password, and a route to post it to.
-Answer it like this:
-
-```
-{"type":"answer","route":"root/password","param":"password"}
-```
-
-After that, you'll get the spawn player form, which doesn't do anything yet.
+There's nothing to the game itself yet, just an engine so far. So after
+logging in, you'll be sent to the 'spawn player' command, which will do
+nothing, yet.
