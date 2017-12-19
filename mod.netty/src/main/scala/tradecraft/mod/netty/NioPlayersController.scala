@@ -48,7 +48,7 @@ class NioPlayersController extends PlayersController {
               .addLast(new ResponseEncoder())
 
             // upon connecting we kick off the login form
-            enqueue(UserCommand(user, CommandInfo("command", "root/login", null)))
+            enqueue(UserCommand(user, CommandInfo("command", "auth/login", null)))
           }
         })
         .option(ChannelOption.SO_BACKLOG, int2Integer(128))
@@ -56,6 +56,8 @@ class NioPlayersController extends PlayersController {
 
       // Bind and start to accept incoming connections.
       channelFuture = Some(b.bind(8088).sync)
+      System.out.println("Listening on port 8088 for users.")
+      
       // block until closed
       channelFuture.map(c => c.channel().closeFuture().sync())
     } finally {

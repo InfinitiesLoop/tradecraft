@@ -20,7 +20,9 @@ lazy val core = (project in file("core")).
       // json for processing of requests and responses
       "org.json4s" %% "json4s-native" % json4sVersion,
       // templating engine for views
-      "org.freemarker" % "freemarker" % "2.3.27-incubating"
+      "org.freemarker" % "freemarker" % "2.3.27-incubating",
+      // for loading mods
+      "org.clapper" %% "classutil" % "1.1.2"
     )
   )
 

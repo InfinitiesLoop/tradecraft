@@ -1,7 +1,11 @@
 package tradecraft.server
 
-import tradecraft.core.model.GameState
+import org.clapper.classutil.ClassFinder
 import tradecraft.core._
+import tradecraft.core.model.GameState
+import tradecraft.core.mod.Mod
+
+import scala.collection.JavaConverters._
 
 import scala.io.Source
 
@@ -11,22 +15,44 @@ class Server {
   private def UpdatesPerSecond = 20L
   private def FramesPerSecond = 20L
   private def RenderTime = false
-  var services: List[Service] = List()
+
+  private var services: List[Service] = List()
+  private val gameState: GameState = new GameState()
+
+  System.out.println("Loading mods...")
+  private val mods: Map[String, Mod] = createMods()
+  System.out.println(s"${mods.size} mods loaded.")
 
   // todo: this pattern is breaking down, we might want to define a ServerBuilder that can do all the init stuff
   // and then new up a Server instance with an already configured set of services, etc.
   var playersController: Option[PlayersController] = None
-  var serviceThreads: Option[List[Thread]] = None
-  val gameState: GameState = new GameState()
-  private val controllers = Set[Controller](new RootController, new PlayerController)
-  val commandRouter: CommandRouter = new CommandRouter(controllers, gameState)
+  var serviceThreads: List[Thread] = List()
+  var commandRouter: Option[CommandRouter] = None
   var templateEngine: Option[TemplateEngine] = None
 
-  def addService(service: Service): Unit = {
-    services = services :+ service
+  private def createMods(): Map[String, Mod] = {
+    val classInfo = ClassFinder.classInfoMap(ClassFinder().getClasses())
+    val modClasses = ClassFinder.concreteSubclasses(classOf[Mod].getName, classInfo)
+    modClasses.map(m => {
+      // each mod gets a copy of a GameContext, which contains references to anything it might need
+      // and will possibly serve as a container for things like event handlers
+      val gameContext = new GameContext(gameState)
+      val mod = Class.forName(m.name).getConstructor(classOf[GameContext]).newInstance(gameContext).asInstanceOf[Mod]
+      (mod.name(), mod)
+    }).toMap
+  }
+
+  private def startMods(): Unit = mods.foreach(_._2.start())
+
+  private def setupRouter(): Unit = {
+    val controllers = mods.flatMap(modInfo => modInfo._2.gameContext.getControllers).toSet
+    commandRouter = Some(new CommandRouter(controllers, gameState))
   }
 
   def configureTemplateEngine(): Unit = {
+    // TODO: we need to enumerate the resources in the loaded mods instead of this hard coded list.
+    // But enumerating resources is harder than it should be....
+
     // ultimately the list of templates should be gathered from all the loaded mods, perhaps by
     // automatically scanning all their resources for a 'templates' directory and then using their
     // mod name at the first part of the name given to it. But, we would also want a mod to be able
@@ -44,11 +70,10 @@ class Server {
   }
 
   def startServices(): Unit = {
-    serviceThreads = Some(services.map(s => {
-      new Thread(() => s.run())
-    }))
+    services = mods.flatMap(_._2.gameContext.getServices).toList
+    serviceThreads = services.map(s => { new Thread(() => s.run())})
 
-    serviceThreads.get.foreach(t => t.start())
+    serviceThreads.foreach(_.start())
 
     playersController = services
       .find(p => p.isInstanceOf[PlayersController])
@@ -60,7 +85,7 @@ class Server {
     services.foreach(s => s.close())
 
     // wait for services to stop...
-    serviceThreads.get.foreach(t => t.join())
+    serviceThreads.foreach(t => t.join())
 
     // other stuff...
   }
@@ -70,7 +95,7 @@ class Server {
 
     playersController.get.pollCommand match {
       case Some(command) =>
-        commandRouter.handleCommand(templateEngine.get, command)
+        commandRouter.get.handleCommand(templateEngine.get, command)
         //System.out.println(s"[SERVER] Got Command => [${command.userId}][${command.command}]")
         processInput()
       case _ =>
@@ -78,6 +103,8 @@ class Server {
   }
 
   def run(): Unit = {
+    startMods()
+    setupRouter()
     startServices()
     configureTemplateEngine()
 
