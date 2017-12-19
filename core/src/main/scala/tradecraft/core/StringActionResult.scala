@@ -6,6 +6,6 @@ object StringActionResult {
 
 class StringActionResult(str: String) extends ActionResult {
   def execute(actionContext: ActionContext): Unit = {
-    actionContext.userCommand.connectedUser.sendResponse(Response.render(str))
+    actionContext.connectedUser.sendResponse(Response.render(str))
   }
 }

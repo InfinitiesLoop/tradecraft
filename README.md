@@ -97,16 +97,22 @@ You send JSON commands and receive JSON responses. First thing you need to
 do is authenticate with your account. Auth is faked out for now, so use
 any username and password you want.
 
+The client and server communicate through commands that have a route specified.
+You'll notice on connecting that the client receives some Render commands,
+and then a 'prompt' command, asking for your username, with a route to post
+the answer to.
+
+Answer it like this:
+
 ```
-{"auth":{"name":"username","pw":"password"}}
+{"type":"answer","route":"root/username","param":"username"}
 ```
 
-After that, you can send JSON commands that look like this:
+Then you get a prompt for the password, and a route to post it to.
+Answer it like this:
 
 ```
-{"command":"foo"}
+{"type":"answer","route":"root/password","param":"password"}
 ```
 
-That command basically represents what would have happened if the client
-typed 'foo' and hit enter. The server gets to decide what that means.
-Which at the moment is nothing...
+After that, you'll get the spawn player form, which doesn't do anything yet.

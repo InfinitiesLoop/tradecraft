@@ -1,6 +1,6 @@
 package tradecraft.mod.netty
 
-import tradecraft.core.{PlayersController, UserCommand}
+import tradecraft.core.{CommandInfo, PlayersController, UserCommand}
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.{ChannelFuture, ChannelHandlerContext, ChannelInitializer, ChannelOption}
 import io.netty.channel.nio.NioEventLoopGroup
@@ -44,9 +44,11 @@ class NioPlayersController extends PlayersController {
             ch.pipeline()
               .addLast(new JsonObjectDecoder())
               .addLast(new RequestDecoder())
-              .addLast(new AuthHandler(self))
               .addLast(new TradeCraftServerHandler(self))
               .addLast(new ResponseEncoder())
+
+            // upon connecting we kick off the login form
+            enqueue(UserCommand(user, CommandInfo("command", "root/login", null)))
           }
         })
         .option(ChannelOption.SO_BACKLOG, int2Integer(128))
@@ -60,10 +62,6 @@ class NioPlayersController extends PlayersController {
       workerGroup.shutdownGracefully()
       masterGroup.shutdownGracefully()
     }
-  }
-
-  def playerAuthenticated(userId: Long, connectedUser: NioConnectedUser, userName: String): Unit = {
-    queue.add(UserCommand(userId, connectedUser, UserCommand.Refresh))
   }
 
   override def close(): Unit = {

@@ -1,11 +1,14 @@
 package tradecraft.core
 
 object UserCommand {
-  def apply(userId: Long, connectedUser: ConnectedUser, command: String): UserCommand = {
-    new UserCommand(userId, connectedUser, command)
+  def apply(connectedUser: ConnectedUser, commandInfo: CommandInfo): UserCommand = {
+    new UserCommand(connectedUser, commandInfo)
   }
   def Refresh = ""
 }
 
-class UserCommand(val userId: Long, val connectedUser: ConnectedUser, val command: String) {
+class UserCommand(val connectedUser: ConnectedUser,
+                  val commandInfo: CommandInfo) {
 }
+
+case class CommandInfo(`type`: String, route: String, param: String)

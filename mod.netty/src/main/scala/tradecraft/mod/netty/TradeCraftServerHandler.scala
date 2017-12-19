@@ -2,7 +2,7 @@ package tradecraft.mod.netty
 
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
-import tradecraft.core.{Request, UserCommand}
+import tradecraft.core.{CommandInfo, Request, UserCommand}
 
 class TradeCraftServerHandler(playersController: NioPlayersController) extends ChannelInboundHandlerAdapter {
 
@@ -12,9 +12,16 @@ class TradeCraftServerHandler(playersController: NioPlayersController) extends C
 
   override def channelRead(ctx: ChannelHandlerContext, msg: Any): Unit = {
     val request = msg.asInstanceOf[Request]
-    val userId = ctx.channel().attr(AuthHandler.AuthAttributeKey).get()
     val connectedUser = ctx.channel().attr(NioPlayersController.connectedUserKey).get()
-    playersController.enqueue(UserCommand(userId, connectedUser, request.command.getOrElse(UserCommand.Refresh)))
+
+    playersController.enqueue(UserCommand(
+      connectedUser,
+      // todo: maybe CommandInfo is lame and we should just forward Request
+      CommandInfo(
+        request.`type`,
+        request.route,
+        request.param)
+    ))
   }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {

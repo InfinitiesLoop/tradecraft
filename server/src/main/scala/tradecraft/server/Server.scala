@@ -18,16 +18,12 @@ class Server {
   var playersController: Option[PlayersController] = None
   var serviceThreads: Option[List[Thread]] = None
   val gameState: GameState = new GameState()
-  val commandRouter: CommandRouter = new CommandRouter(gameState)
+  private val controllers = Set[Controller](new RootController, new PlayerController)
+  val commandRouter: CommandRouter = new CommandRouter(controllers, gameState)
   var templateEngine: Option[TemplateEngine] = None
 
   def addService(service: Service): Unit = {
     services = services :+ service
-  }
-
-  def registerRoutes(): Unit = {
-    // todo: some day we'd do this by calling into all the loaded mods
-    commandRouter.addRoute("root", new RootController())
   }
 
   def configureTemplateEngine(): Unit = {
@@ -39,7 +35,11 @@ class Server {
     // Also, right now we just store all the templates as strings in memory, which is probably fine, but
     // as many templates will probably go unused most the time, we should probably lazily load them.
     templateEngine = Some(new FreeMarkerTemplateEngine(Map(
-      "core/spawn_player.ftl" -> Source.fromResource("templates/core/spawn_player.ftl").mkString
+      "player/spawn.ftl" -> Source.fromResource("templates/core/spawn_player.ftl").mkString,
+      "player/spawn_prompt.ftl" -> Source.fromResource("templates/core/spawn_player_prompt.ftl").mkString,
+      "core/login.ftl" -> Source.fromResource("templates/core/login.ftl").mkString,
+      "core/login_username.ftl" -> Source.fromResource("templates/core/login_username.ftl").mkString,
+      "core/login_password.ftl" -> Source.fromResource("templates/core/login_password.ftl").mkString
     )))
   }
 
@@ -79,7 +79,6 @@ class Server {
 
   def run(): Unit = {
     startServices()
-    registerRoutes()
     configureTemplateEngine()
 
     var initialTime = System.nanoTime

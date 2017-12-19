@@ -1,9 +1,14 @@
 package tradecraft.core
 
-case class AuthRequest(name: String, pw: String)
+case class Request(`type`: String,
+                   route: String,
+                   param: String)
 
-case class Request(command: Option[String],
-                   auth: Option[AuthRequest])
+// examples of requests sent by clients:
 
-// { "command": "a" }
-// { "auth": { "name": "foo", pw: "hash" } }
+// logging in:
+//{ "type": "answer", "route": "root/username", "param": "myname" }
+//{ "type": "answer", "route": "root/password", "param": "mypassword" }
+
+// land on planets in attached sector
+//{ "type": "command", "route": "sector", "param": "l" }
