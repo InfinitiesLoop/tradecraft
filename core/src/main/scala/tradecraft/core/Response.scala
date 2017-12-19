@@ -5,11 +5,10 @@ import org.json4s.JsonDSL._
 
 object Response {
 
-  def render(line: String): RenderResponse = new RenderResponse(List(line))
-  def render(lines: List[String]): RenderResponse = new RenderResponse(lines)
+  def render(text: String): RenderResponse = new RenderResponse(text)
 
-  def prompt(line: String, defaultValue: String, answerRoute: String): PromptResponse =
-    new PromptResponse(List(line), defaultValue, answerRoute)
+  def prompt(text: String, defaultValue: String, answerRoute: String): PromptResponse =
+    new PromptResponse(text, defaultValue, answerRoute)
 
   def redirect(path: String): RedirectResponse =
     new RedirectResponse(path)
@@ -19,18 +18,18 @@ abstract class Response {
   def toJson: String
 }
 
-class RenderResponse(lines: List[String]) extends Response {
+class RenderResponse(text: String) extends Response {
   override def toJson: String = {
-    val json = ("type" -> "render") ~ ("render" -> lines)
+    val json = ("type" -> "render") ~ ("render" -> text)
     compact(render(json))
   }
 }
 
-class PromptResponse(lines: List[String], defaultValue: String, answerRoute: String) extends Response {
+class PromptResponse(text: String, defaultValue: String, answerRoute: String) extends Response {
   override def toJson: String = {
     val json =
       ("type" -> "prompt") ~
-      ("render" -> lines) ~
+      ("render" -> text) ~
       ("default" -> defaultValue) ~
       ("route" -> answerRoute)
 

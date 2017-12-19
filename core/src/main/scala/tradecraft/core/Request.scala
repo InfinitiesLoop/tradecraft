@@ -2,7 +2,7 @@ package tradecraft.core
 
 case class Request(`type`: String,
                    route: String,
-                   param: String)
+                   param: Option[String])
 
 // examples of requests sent by clients:
 

@@ -20,7 +20,7 @@ class TradeCraftServerHandler(playersController: NioPlayersController) extends C
       CommandInfo(
         request.`type`,
         request.route,
-        request.param)
+        request.param.getOrElse(""))
     ))
   }
 

@@ -49,8 +49,10 @@ class CommandRouter(controllers: Set[Controller], gameState: GameState) {
         // get the controller for this kind of object and have it execute the action
         val actionResult = methodInfo._2.invoke(methodInfo._1, actionContext).asInstanceOf[ActionResult]
 
-        // do the action
-        actionResult.execute(actionContext)
+        if (actionResult != null) {
+          // do the action
+          actionResult.execute(actionContext)
+        }
       case None =>
         System.out.println("No controller found.")
     }

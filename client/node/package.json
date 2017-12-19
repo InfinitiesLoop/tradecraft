@@ -1,0 +1,23 @@
+{
+  "name": "tradecraft",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/InfinitiesLoop/tradecraft.git"
+  },
+  "author": "InfinitiesLoop",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/InfinitiesLoop/tradecraft/issues"
+  },
+  "homepage": "https://github.com/InfinitiesLoop/tradecraft#readme",
+  "dependencies": {
+    "commander": "^2.12.2",
+    "readline": "^1.3.0"
+  }
+}
