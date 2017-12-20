@@ -5,17 +5,17 @@ import java.io.{Reader, StringReader, StringWriter}
 import freemarker.cache.TemplateLoader
 import freemarker.template.{Configuration, TemplateExceptionHandler}
 
-abstract class TemplateEngine(val templates: Map[String, String]) {
+abstract class TemplateEngine(val templates: Set[Template]) {
   def render(template: String, viewData: AnyRef): String
 }
 
-class FreeMarkerTemplateEngine(templates: Map[String, String]) extends TemplateEngine(templates) {
+class FreeMarkerTemplateEngine(templates: Set[Template]) extends TemplateEngine(templates) {
   class SimpleTemplateLoader() extends TemplateLoader {
     override def getLastModified(templateSource: scala.Any): Long = -1L
     override def getReader(templateSource: scala.Any, encoding: String): Reader =
       new StringReader(templateSource.asInstanceOf[String])
     override def closeTemplateSource(templateSource: scala.Any): Unit = {}
-    override def findTemplateSource(name: String): AnyRef = templates.getOrElse(name, null)
+    override def findTemplateSource(name: String): AnyRef = templates.find(_.name == name).map(_.content()).orNull
   }
 
   val cfg = new Configuration(Configuration.VERSION_2_3_27)

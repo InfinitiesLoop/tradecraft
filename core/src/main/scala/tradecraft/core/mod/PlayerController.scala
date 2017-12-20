@@ -6,7 +6,7 @@ import tradecraft.core.{ActionContext, ActionResult, Controller, PromptActionRes
 class PlayerController extends Controller {
   @Command(path = "player/spawn")
   def spawn(actionContext: ActionContext): ActionResult = {
-    PromptActionResult(Some("player/spawn.ftl"), "player/spawn_prompt.ftl", "", "player/spawn")
+    PromptActionResult(Some("player/spawn"), "player/spawn_prompt", "", "player/spawn")
   }
 
   @Answer(path = "player/spawn")

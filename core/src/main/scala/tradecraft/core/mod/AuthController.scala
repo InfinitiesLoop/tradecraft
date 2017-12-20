@@ -8,7 +8,7 @@ class AuthController extends Controller {
   def login(actionContext: ActionContext): ActionResult = {
     // this is the very first command executed after a connection is established.
     // the client doesn't actually send it, it's just implied by the connection being made.
-    PromptActionResult(Some("core/login.ftl"), "core/login_username.ftl", "", "auth/username")
+    PromptActionResult(Some("auth/login"), "auth/login/username", "", "auth/username")
   }
 
   @Answer(path = "auth/username")
@@ -16,7 +16,7 @@ class AuthController extends Controller {
     ctx.connectedUser.setData("username", ctx.command.param)
 
     // now ask for their password
-    PromptActionResult(None, "core/login_password.ftl", "", "auth/password")
+    PromptActionResult(None, "auth/login/password", "", "auth/password")
   }
 
   @Answer(path = "auth/password")

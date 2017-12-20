@@ -50,23 +50,8 @@ class Server {
   }
 
   def configureTemplateEngine(): Unit = {
-    // TODO: we need to enumerate the resources in the loaded mods instead of this hard coded list.
-    // But enumerating resources is harder than it should be....
-
-    // ultimately the list of templates should be gathered from all the loaded mods, perhaps by
-    // automatically scanning all their resources for a 'templates' directory and then using their
-    // mod name at the first part of the name given to it. But, we would also want a mod to be able
-    // to provide a replacement template for an existing one, so some API for providing them explicitly
-    // would be needed as well.
-    // Also, right now we just store all the templates as strings in memory, which is probably fine, but
-    // as many templates will probably go unused most the time, we should probably lazily load them.
-    templateEngine = Some(new FreeMarkerTemplateEngine(Map(
-      "player/spawn.ftl" -> Source.fromResource("templates/core/spawn_player.ftl").mkString,
-      "player/spawn_prompt.ftl" -> Source.fromResource("templates/core/spawn_player_prompt.ftl").mkString,
-      "core/login.ftl" -> Source.fromResource("templates/core/login.ftl").mkString,
-      "core/login_username.ftl" -> Source.fromResource("templates/core/login_username.ftl").mkString,
-      "core/login_password.ftl" -> Source.fromResource("templates/core/login_password.ftl").mkString
-    )))
+    val templates = mods.flatMap(modInfo => modInfo._2.gameContext.getTemplates).toSet
+    templateEngine = Some(new FreeMarkerTemplateEngine(templates))
   }
 
   def startServices(): Unit = {
