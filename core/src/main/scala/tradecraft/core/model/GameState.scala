@@ -4,6 +4,10 @@ import java.util.concurrent.atomic.AtomicLong
 
 import scala.collection.mutable
 
+object GameObject {
+  def apply(kind: String, data: Map[String, Any]): GameObject =
+    new GameObject(kind, None, Some(data))
+}
 class GameObject(val kind: String,
                  val id: Option[Long] = None,
                  _data: Option[Map[String, Any]] = None) {

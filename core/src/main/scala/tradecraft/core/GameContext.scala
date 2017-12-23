@@ -2,7 +2,7 @@ package tradecraft.core
 
 import tradecraft.core.model.GameState
 
-class GameContext(gameState: GameState) {
+class GameContext(val gameState: GameState) {
   private var controllers = Set[Controller]()
   private var services = Set[Service]()
   private var templates = Set[Template]()
